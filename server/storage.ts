@@ -289,22 +289,53 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  async bulkCreateTablets(tabletsList: InsertTablet[]): Promise<Tablet[]> {
-    if (tabletsList.length === 0) return [];
-    const createdTablets = await db.insert(tablets).values(tabletsList).returning();
-    
-    // Add entries to tablet history
-    const historyEntries = createdTablets.map(tablet => ({
-      tabletId: tablet.id,
-      eventType: 'created',
-      date: new Date(),
-      condition: tablet.condition,
-      notes: 'Tablet added to inventory in bulk import'
-    }));
-    
-    await db.insert(tabletHistory).values(historyEntries);
-    
-    return createdTablets;
+  async bulkCreateTablets(tabletsList: InsertTablet[]): Promise<{ created: Tablet[]; duplicates: string[] }> {
+    if (tabletsList.length === 0) return { created: [], duplicates: [] };
+
+    // Get all existing serial numbers
+    const existingTablets = await db
+      .select({ serialNumber: tablets.serialNumber })
+      .from(tablets)
+      .where(inArray(
+        tablets.serialNumber,
+        tabletsList.map(t => t.serialNumber)
+      ));
+
+    const existingSerials = new Set(existingTablets.map(t => t.serialNumber));
+    const duplicateSerials: string[] = [];
+    const newTablets: InsertTablet[] = [];
+
+    // Filter out duplicates
+    tabletsList.forEach(tablet => {
+      if (existingSerials.has(tablet.serialNumber)) {
+        duplicateSerials.push(tablet.serialNumber);
+      } else {
+        newTablets.push(tablet);
+      }
+    });
+
+    // Insert only new tablets
+    const created = newTablets.length > 0 
+      ? await db.insert(tablets).values(newTablets).returning()
+      : [];
+
+    // Add history entries for new tablets
+    if (created.length > 0) {
+      const historyEntries = created.map(tablet => ({
+        tabletId: tablet.id,
+        eventType: 'created',
+        date: new Date(),
+        condition: tablet.condition,
+        notes: 'Tablet added to inventory in bulk import'
+      }));
+      
+      await db.insert(tabletHistory).values(historyEntries);
+    }
+
+    return {
+      created,
+      duplicates: duplicateSerials
+    };
   }
 
   // Borrowing operations

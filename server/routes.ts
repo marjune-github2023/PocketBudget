@@ -327,14 +327,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: record.notes || null,
       }));
 
-      const createdTablets = await storage.bulkCreateTablets(tablets);
+      const result = await storage.bulkCreateTablets(tablets);
       
       // Delete the temporary file
       fs.unlinkSync(req.file.path);
 
+      const message = result.created.length > 0 || result.duplicates.length > 0
+        ? `Imported ${result.created.length} tablets. ${result.duplicates.length > 0 ? `Skipped ${result.duplicates.length} duplicate serial numbers.` : ''}`
+        : 'No tablets were imported.';
+
       res.status(201).json({ 
-        message: `Successfully imported ${createdTablets.length} tablets`,
-        tablets: createdTablets 
+        message,
+        tablets: result.created,
+        duplicates: result.duplicates
       });
     } catch (error) {
       console.error("Error importing tablets:", error);
