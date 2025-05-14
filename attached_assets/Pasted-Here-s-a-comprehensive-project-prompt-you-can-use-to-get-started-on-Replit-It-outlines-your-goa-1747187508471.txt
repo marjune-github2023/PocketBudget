@@ -1,0 +1,121 @@
+Here's a **comprehensive project prompt** you can use to get started on Replit. It outlines your goals clearly for the development environment and will help Replit AI or collaborators understand the scope of your tablet/device management app:
+
+---
+
+### 🚀 Replit Project Prompt: **Tablet Management & Borrowing System**
+
+#### 📌 **Project Overview:**
+
+I want to create a full-stack **Tablet/Device Management System** hosted on **Replit** using a **PostgreSQL** database hosted on [Neon](https://neon.tech). The app is meant to manage the borrowing and returning of tablets by students, track device information, and maintain historical logs of each tablet’s usage.
+
+---
+
+#### ⚙️ **Preferred Stack:**
+
+* **Frontend:** Any modern framework (e.g., React, HTML/CSS/JS, or Flask templates if Python-based)
+* **Backend:** Python (Flask or FastAPI) or Node.js (Express)
+* **Database:** PostgreSQL (from Neon database hosting)
+* **Other Tools:** CSV/Excel file import/export, barcode scanning/searching
+
+---
+
+### 🛠️ Core Features:
+
+#### 📱 Tablet Management:
+
+* Add, update, and delete tablet records
+
+  * Fields: brand, model, color, serial number, IMEI
+* Barcode scanning/search support for serial/IMEI
+* Tablet status: `Serviceable`, `Unserviceable`, or `Lost`
+* Track tablet accessories: charger, cable, box (carton)
+* Track condition of tablet (e.g., good, minor damage, defective)
+
+#### 👨‍🎓 Student Management:
+
+* Add students via form or upload CSV/Excel template
+
+  * Fields: Name, ID, Contact info, etc.
+* Search student by name or ID
+* Edit and download student info template
+
+#### 🔄 Borrowing Process:
+
+* Assign tablet(s) to student
+* Record:
+
+  * Date borrowed
+  * Accessories borrowed
+  * Tablet condition
+  * Generate and print usufruct agreement (PDF or HTML format)
+* Keep past condition/status carried forward
+* Show full history of tablet borrowings (which student, when, condition, etc.)
+
+#### 🔁 Return Process:
+
+* Check for tablet and accessory return
+* Update tablet status and condition
+* Record return date
+
+#### 🛑 Lost or Unretrievable Tablets:
+
+* Mark tablet as "Lost"
+* Upload related documents: Affidavit of Loss or Police Blotter (optional file upload)
+* Connect this info to the student who lost the tablet
+
+#### 📂 Data Handling:
+
+* Upload/download templates in **CSV or Excel** format for:
+
+  * Student lists
+  * Tablet inventories
+  * Transaction records
+
+---
+
+### 🔐 User Roles:
+
+* **Admin**: Full access to manage tablets, students, borrow/return, history, upload/download, print forms
+* (Optional future feature) **Student accounts**: View tablets borrowed and submit return/loss reports
+
+---
+
+### 📦 Database Structure (Suggested Entities):
+
+* `students(id, name, student_id, contact_info, etc.)`
+* `tablets(id, brand, model, color, serial, imei, status, condition)`
+* `accessories(id, tablet_id, charger, cable, box)`
+* `borrow_records(id, tablet_id, student_id, date_borrowed, condition, accessories, returned, return_date)`
+* `tablet_history(id, tablet_id, student_id, event_type, date, condition)`
+* `lost_reports(id, tablet_id, student_id, date_reported, document_link)`
+
+---
+
+### 🔗 PostgreSQL (Neon) Setup:
+
+* Connect to Neon database using your connection string
+* Use ORM (like SQLAlchemy for Python or Sequelize for Node) or raw SQL as preferred
+* Allow environment variable to store DB credentials securely in Replit
+
+---
+
+### 🧪 Optional Advanced Features:
+
+* QR/barcode scanning via webcam (WebRTC) for easier input
+* Authentication (admin login)
+* Audit logs for each action
+* PDF generation for usufruct forms
+* File upload support for affidavit or police reports
+
+---
+
+### ✅ Desired Outcomes:
+
+* Fully functional web app hosted on Replit
+* Clean and intuitive UI for tablet and student management
+* Robust database schema with easy import/export
+* Easy tracking and reporting of tablet lifecycle
+
+---
+
+Let me know if you'd like help scaffolding the actual backend (e.g., a Flask app with database models and API routes) or generating the PostgreSQL schema, CSV templates, or example frontend components.
