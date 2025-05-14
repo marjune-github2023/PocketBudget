@@ -203,15 +203,14 @@ export function TabletList() {
   return (
     <div>
       {/* View toggle */}
-      <Tabs defaultValue={view} onValueChange={(v) => setView(v as "grid" | "list")} className="mb-4">
-        <TabsList className="grid w-[200px] grid-cols-2">
+      <Tabs value={view} onValueChange={(v) => setView(v as "grid" | "list")} className="w-full">
+        <TabsList className="grid w-[200px] grid-cols-2 mb-4">
           <TabsTrigger value="grid">Grid View</TabsTrigger>
           <TabsTrigger value="list">List View</TabsTrigger>
         </TabsList>
-      </Tabs>
 
-      {/* Grid View */}
-      <TabsContent value="grid" className="mt-0">
+        {/* Grid View */}
+        <TabsContent value="grid" className="mt-0">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tablets.map((tablet: TabletWithBorrowInfo) => (
             <div key={tablet.id} className="bg-white overflow-hidden shadow rounded-lg divide-y divide-slate-200">
@@ -284,15 +283,16 @@ export function TabletList() {
         </div>
       </TabsContent>
 
-      {/* List View */}
-      <TabsContent value="list" className="mt-0">
-        <DataTable
-          columns={columns}
-          data={tablets}
-          searchPlaceholder="Search tablets by serial number, model, or status..."
-          searchColumn="serialNumber"
-        />
-      </TabsContent>
+        {/* List View */}
+        <TabsContent value="list" className="mt-0">
+          <DataTable
+            columns={columns}
+            data={tablets}
+            searchPlaceholder="Search tablets by serial number, model, or status..."
+            searchColumn="serialNumber"
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Details Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
