@@ -1,0 +1,24 @@
+The above error occurred in the <TabsContent> component:
+
+    at https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=27f600ca:171:13
+    at _c5 (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at TabletList (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/src/components/tablets/tablet-list.tsx:42:21)
+    at div
+    at div
+    at div
+    at Tablets (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/src/pages/tablets.tsx:29:21)
+    at Route (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=27f600ca:323:16)
+    at Switch (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=27f600ca:379:17)
+    at main
+    at div
+    at div
+    at DashboardLayout (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/src/components/layout/dashboard-layout.tsx:22:43)
+    at Router
+    at Provider (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-M3NVYRND.js?v=27f600ca:48:15)
+    at TooltipProvider (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=27f600ca:59:5)
+    at QueryClientProvider (https://d038c7b8-b840-4c72-bb35-29c7c4cef3e3-00-1wsnmoonam4kw.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=27f600ca:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
