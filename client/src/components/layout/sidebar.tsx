@@ -27,9 +27,9 @@ const NavItem = ({ href, icon: Icon, children, onClick }: NavItemProps) => {
 
   return (
     <Link href={href}>
-      <a
+      <button
         onClick={onClick}
-        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+        className={`group flex w-full items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
           isActive
             ? "bg-slate-900 text-white"
             : "text-slate-300 hover:bg-slate-700 hover:text-white"
@@ -37,7 +37,7 @@ const NavItem = ({ href, icon: Icon, children, onClick }: NavItemProps) => {
       >
         <Icon className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? "text-slate-300" : "text-slate-400"}`} />
         {children}
-      </a>
+      </button>
     </Link>
   );
 };
