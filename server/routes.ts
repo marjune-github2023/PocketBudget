@@ -154,14 +154,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: record.notes || null,
       }));
 
-      const createdStudents = await storage.bulkCreateStudents(students);
+      const result = await storage.bulkCreateStudents(students);
       
       // Delete the temporary file
       fs.unlinkSync(req.file.path);
 
+      const message = result.created.length > 0 || result.duplicates.length > 0
+        ? `Imported ${result.created.length} students. ${result.duplicates.length > 0 ? `Skipped ${result.duplicates.length} duplicate student IDs.` : ''}`
+        : 'No students were imported.';
+
       res.status(201).json({ 
-        message: `Successfully imported ${createdStudents.length} students`,
-        students: createdStudents 
+        message,
+        students: result.created,
+        duplicates: result.duplicates
       });
     } catch (error) {
       console.error("Error importing students:", error);

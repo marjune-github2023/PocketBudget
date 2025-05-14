@@ -112,9 +112,14 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
       const result = await response.json();
       
       toast({
-        title: "Import successful",
-        description: `Successfully imported ${result.students.length} students`,
+        title: "Import completed",
+        description: result.message,
+        variant: result.duplicates?.length > 0 ? "default" : "default"
       });
+
+      if (result.duplicates?.length > 0) {
+        setError(`Skipped duplicate student IDs: ${result.duplicates.join(', ')}`);
+      }
       
       setImportSuccess(true);
       setFile(null);

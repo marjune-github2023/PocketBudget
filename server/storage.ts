@@ -128,10 +128,40 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  async bulkCreateStudents(studentsList: InsertStudent[]): Promise<Student[]> {
-    if (studentsList.length === 0) return [];
-    const createdStudents = await db.insert(students).values(studentsList).returning();
-    return createdStudents;
+  async bulkCreateStudents(studentsList: InsertStudent[]): Promise<{ created: Student[]; duplicates: string[] }> {
+    if (studentsList.length === 0) return { created: [], duplicates: [] };
+
+    // Get all existing student IDs
+    const existingStudents = await db
+      .select({ studentId: students.studentId })
+      .from(students)
+      .where(inArray(
+        students.studentId, 
+        studentsList.map(s => s.studentId)
+      ));
+
+    const existingIds = new Set(existingStudents.map(s => s.studentId));
+    const duplicateIds: string[] = [];
+    const newStudents: InsertStudent[] = [];
+
+    // Filter out duplicates
+    studentsList.forEach(student => {
+      if (existingIds.has(student.studentId)) {
+        duplicateIds.push(student.studentId);
+      } else {
+        newStudents.push(student);
+      }
+    });
+
+    // Insert only new students
+    const created = newStudents.length > 0 
+      ? await db.insert(students).values(newStudents).returning()
+      : [];
+
+    return {
+      created,
+      duplicates: duplicateIds
+    };
   }
 
   // Tablet operations
