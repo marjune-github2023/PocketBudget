@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/templates/students", (req, res) => {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="students_template.csv"');
-    res.send('name,studentId,email,phone,notes\nJohn Doe,STU2023001,john.doe@example.com,555-123-4567,"Honor student"\nJane Smith,STU2023002,jane.smith@example.com,555-987-6543,"Transfer student"');
+    res.send('name,studentId,yearLevel,studentCourse,email,phone,notes\nJohn Doe,STU2023001,First Year,BS Computer Science,john.doe@example.com,555-123-4567,"Honor student"\nJane Smith,STU2023002,Second Year,BS Information Technology,jane.smith@example.com,555-987-6543,"Transfer student"');
   });
 
   app.get("/api/templates/tablets", (req, res) => {
