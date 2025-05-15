@@ -1,12 +1,10 @@
-// CommonJS format migration script
-const { Pool } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { sql } = require('drizzle-orm');
-const ws = require('ws');
+// ES Module format migration script
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { sql } from 'drizzle-orm';
+import ws from 'ws';
 
 // Setup database connection exactly like in server/db.js
-// since we can't directly import ES modules
-const { NEON_DB_URL } = process.env;
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
@@ -14,7 +12,7 @@ if (!DATABASE_URL) {
 }
 
 // Initialize Neon database client with proper configuration
-require('@neondatabase/serverless').neonConfig.webSocketConstructor = ws;
+neonConfig.webSocketConstructor = ws;
 const pool = new Pool({ connectionString: DATABASE_URL });
 const db = drizzle({ client: pool });
 
@@ -32,11 +30,11 @@ async function migrateStudentsTable() {
     
     const nameColumnExists = checkNameColumn?.[0]?.exists === true;
     
-    if (nameColumnExists) {
-      console.log('Name column exists. Migrating data structure...');
-      
-      // Add all new columns
-      await db.execute(sql`
+    // Always create new columns, just in case they're missing
+    console.log('Creating or ensuring new columns exist...');
+    
+    // Add all new columns
+    await db.execute(sql`
         ALTER TABLE students 
         ADD COLUMN IF NOT EXISTS last_name TEXT,
         ADD COLUMN IF NOT EXISTS first_name TEXT,
@@ -67,53 +65,66 @@ async function migrateStudentsTable() {
         ADD COLUMN IF NOT EXISTS guardian_address TEXT
       `);
       
-      // Transfer data from old to new columns
-      await db.execute(sql`
-        UPDATE students
-        SET full_name = name,
-            program_name = course,
-            major_name = major,
-            student_status = student_type,
-            mobile_no = phone
-      `);
-      
-      // Make sure full_name is filled
-      await db.execute(sql`
-        UPDATE students 
-        SET full_name = name
-        WHERE full_name IS NULL
-      `);
-      
-      // Extract first and last names from name
-      await db.execute(sql`
-        UPDATE students
-        SET last_name = (
-            CASE 
-                WHEN position(' ' in name) > 0 
-                THEN substring(name from position(' ' in name) + 1)
-                ELSE name
-            END
-        ),
-        first_name = (
-            CASE 
-                WHEN position(' ' in name) > 0 
-                THEN substring(name from 1 for position(' ' in name) - 1)
-                ELSE name
-            END
-        )
-        WHERE last_name IS NULL OR first_name IS NULL
-      `);
+      // Check if we need to transfer data from old columns
+      if (nameColumnExists) {
+        console.log('Migrating data from old columns to new columns...');
+        
+        // Transfer data from old to new columns
+        await db.execute(sql`
+          UPDATE students
+          SET full_name = name,
+              program_name = course,
+              major_name = major,
+              student_status = student_type,
+              mobile_no = phone
+        `);
+        
+        // Make sure full_name is filled
+        await db.execute(sql`
+          UPDATE students 
+          SET full_name = name
+          WHERE full_name IS NULL
+        `);
+        
+        // Extract first and last names from name
+        await db.execute(sql`
+          UPDATE students
+          SET last_name = (
+              CASE 
+                  WHEN position(' ' in name) > 0 
+                  THEN substring(name from position(' ' in name) + 1)
+                  ELSE name
+              END
+          ),
+          first_name = (
+              CASE 
+                  WHEN position(' ' in name) > 0 
+                  THEN substring(name from 1 for position(' ' in name) - 1)
+                  ELSE name
+              END
+          )
+          WHERE last_name IS NULL OR first_name IS NULL
+        `);
+      } else {
+        console.log('No old columns found to migrate data from.');
+      }
       
       console.log('Migration completed successfully!');
-    } else {
-      console.log('Name column does not exist. The schema is likely already migrated.');
-    }
-    
   } catch (error) {
     console.error('Error during migration:', error);
   } finally {
-    process.exit(0);
+    await pool.end();
+    console.log('Migration completed, pool closed.');
   }
 }
 
-migrateStudentsTable();
+// Call and handle the migration
+migrateStudentsTable()
+  .then(() => {
+    console.log('Migration script completed successfully');
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error('Error in migration script:', err);
+    process.exit(1);
+  });
