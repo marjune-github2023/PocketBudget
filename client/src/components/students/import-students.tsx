@@ -220,14 +220,14 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
                   >
                     <X className="h-4 w-4 mr-1" /> Remove
                   </Button>
-                  <Button size="sm" onClick={handleUpload} disabled={isLoading}>
+                  <Button size="sm" onClick={handleAnalyze} disabled={isLoading}>
                     {isLoading ? (
                       <>
-                        <LoadingSpinner size="sm" className="mr-1" /> Uploading...
+                        <LoadingSpinner size="sm" className="mr-1" /> Analyzing...
                       </>
                     ) : (
                       <>
-                        <Check className="h-4 w-4 mr-1" /> Confirm Upload
+                        <Check className="h-4 w-4 mr-1" /> Analyze File
                       </>
                     )}
                   </Button>
