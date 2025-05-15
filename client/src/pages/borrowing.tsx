@@ -44,7 +44,9 @@ export default function Borrowing() {
         const student = row.original.student;
         return (
           <div>
-            <div className="font-medium">{student.name}</div>
+            <div className="font-medium">
+              {student.fullName || `${student.firstName || ''} ${student.lastName || ''}`}
+            </div>
             <div className="text-sm text-gray-500">ID: {student.studentId}</div>
           </div>
         );

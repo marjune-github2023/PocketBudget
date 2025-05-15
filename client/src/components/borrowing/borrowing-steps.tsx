@@ -608,7 +608,8 @@ export function BorrowingSteps({
                       <div className="sm:col-span-1">
                         <dt className="text-sm font-medium text-slate-500">Student</dt>
                         <dd className="mt-1 text-sm text-slate-900">
-                          {selectedStudent?.name}
+                          {selectedStudent?.fullName || 
+                           `${selectedStudent?.firstName || ''} ${selectedStudent?.lastName || ''}`}
                         </dd>
                       </div>
                       <div className="sm:col-span-1">

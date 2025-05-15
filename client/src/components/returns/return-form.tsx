@@ -180,7 +180,11 @@ export function ReturnForm({ borrowRecord, onSuccess }: ReturnFormProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="font-medium text-slate-700">Student:</p>
-                    <p>{borrowRecord.student.name} ({borrowRecord.student.studentId})</p>
+                    <p>
+                      {borrowRecord.student.fullName || 
+                       `${borrowRecord.student.firstName || ''} ${borrowRecord.student.lastName || ''}`} 
+                      ({borrowRecord.student.studentId})
+                    </p>
                   </div>
                   <div>
                     <p className="font-medium text-slate-700">Borrowed On:</p>

@@ -257,7 +257,10 @@ export default function Reports() {
         const record = row.original;
         return (
           <div>
-            <div className="font-medium">{record.student.name}</div>
+            <div className="font-medium">
+              {record.student.fullName || 
+               `${record.student.firstName || ''} ${record.student.lastName || ''}`}
+            </div>
             <div className="text-sm text-gray-500">ID: {record.student.studentId}</div>
           </div>
         );
