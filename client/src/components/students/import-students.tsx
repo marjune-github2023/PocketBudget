@@ -86,7 +86,9 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
     }
   };
 
-  const handleUpload = async () => {
+  const [analysis, setAnalysis] = useState(null);
+  
+  const handleAnalyze = async () => {
     if (!file) {
       setError("Please select a file to upload");
       return;
@@ -106,7 +108,33 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to import students");
+        throw new Error(errorData.message || "Failed to analyze file");
+      }
+      
+      const result = await response.json();
+      setAnalysis(result);
+      
+    } catch (error) {
+      console.error("Error analyzing file:", error);
+      setError(error instanceof Error ? error.message : "Failed to analyze file");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append("file", file!);
+      
+      const response = await fetch("/api/students/import?confirmImport=true", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to import students");
       }
       
       const result = await response.json();
@@ -114,12 +142,7 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
       toast({
         title: "Import completed",
         description: result.message,
-        variant: result.duplicates?.length > 0 ? "default" : "default"
       });
-
-      if (result.duplicates?.length > 0) {
-        setError(`Skipped duplicate student IDs: ${result.duplicates.join(', ')}`);
-      }
       
       setImportSuccess(true);
       setFile(null);
@@ -238,17 +261,44 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
             )}
           </div>
         </div>
+
+        {analysis && (
+          <div className="mt-4 p-4 border rounded-md bg-slate-50">
+            <h3 className="font-medium mb-2">Import Analysis</h3>
+            <div className="space-y-2 text-sm">
+              <p>Total records: {analysis.total}</p>
+              <p>New records: {analysis.new}</p>
+              <p>Duplicate records: {analysis.duplicates.length}</p>
+              {analysis.duplicates.length > 0 && (
+                <div>
+                  <p className="font-medium">Duplicate Student IDs:</p>
+                  <p className="text-slate-600">{analysis.duplicates.map(d => d.studentId).join(', ')}</p>
+                </div>
+              )}
+              <div className="mt-4 flex space-x-2">
+                <Button onClick={handleConfirmImport} disabled={isLoading}>
+                  Import New Records Only
+                </Button>
+                <Button variant="outline" onClick={() => setAnalysis(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         
-        <div className="mt-4 flex justify-center">
-          <Button 
-            variant="outline" 
-            onClick={handleDownloadTemplate}
-            className="flex items-center"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download template file
-          </Button>
-        </div>
+        {!analysis && (
+          <div className="mt-4 flex justify-center">
+            <Button 
+              variant="outline" 
+              onClick={handleDownloadTemplate}
+              className="flex items-center"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download template file
+            </Button>
+          </div>
+        )}
         
         <div className="mt-4 text-sm text-slate-500">
           <p className="font-medium mb-1">CSV file should include these columns:</p>

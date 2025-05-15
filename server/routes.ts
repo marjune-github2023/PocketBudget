@@ -154,19 +154,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: record.notes || null,
       }));
 
-      const result = await storage.bulkCreateStudents(students);
+      // First check for duplicates without creating
+      const existingStudents = await storage.checkDuplicateStudents(students);
+      
+      if (!req.query.confirmImport) {
+        // Just return the analysis
+        res.json({
+          total: students.length,
+          new: students.length - existingStudents.length,
+          duplicates: existingStudents,
+          records: students
+        });
+        return;
+      }
+
+      // If confirmImport=true, proceed with import
+      const filtered = students.filter(student => 
+        !existingStudents.find(e => e.studentId === student.studentId)
+      );
+      
+      const result = await storage.bulkCreateStudents(filtered);
       
       // Delete the temporary file
       fs.unlinkSync(req.file.path);
 
-      const message = result.created.length > 0 || result.duplicates.length > 0
-        ? `Imported ${result.created.length} students. ${result.duplicates.length > 0 ? `Skipped ${result.duplicates.length} duplicate student IDs.` : ''}`
-        : 'No students were imported.';
-
       res.status(201).json({ 
-        message,
-        students: result.created,
-        duplicates: result.duplicates
+        message: `Imported ${result.created.length} new students successfully.`,
+        students: result.created
       });
     } catch (error) {
       console.error("Error importing students:", error);
