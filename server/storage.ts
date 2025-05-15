@@ -71,10 +71,10 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Student operations
   async getStudents(): Promise<StudentWithBorrowInfo[]> {
-    // Apply a sort order that works regardless of old or new schema
+    // Apply a sort order by ID
     const allStudents = await db.select()
       .from(students)
-      .orderBy(({ asc }) => [asc(students.id)]);
+      .orderBy(students.id);
     
     // Get active borrowings count for each student
     const activeBorrowings = await db.select({
@@ -192,7 +192,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         tabletId: borrowRecords.tabletId,
         studentId: borrowRecords.studentId,
-        studentName: students.name,
+        studentName: students.fullName,
         dateBorrowed: borrowRecords.dateBorrowed
       })
       .from(borrowRecords)
@@ -730,7 +730,7 @@ export class DatabaseStorage implements IStorage {
       studentDetails = await db
         .select({
           id: students.id,
-          name: students.name,
+          name: students.fullName,
           studentId: students.studentId,
         })
         .from(students)
