@@ -26,10 +26,11 @@ export interface IStorage {
   getStudents(): Promise<StudentWithBorrowInfo[]>;
   getStudent(id: number): Promise<Student | undefined>;
   getStudentByStudentId(studentId: string): Promise<Student | undefined>;
+  checkDuplicateStudents(students: InsertStudent[]): Promise<Student[]>;
   createStudent(student: InsertStudent): Promise<Student>;
   updateStudent(id: number, student: Partial<InsertStudent>): Promise<Student | undefined>;
   deleteStudent(id: number): Promise<boolean>;
-  bulkCreateStudents(studentsList: InsertStudent[]): Promise<Student[]>;
+  bulkCreateStudents(studentsList: InsertStudent[]): Promise<{ created: Student[]; duplicates: string[] }>;
 
   // Tablet operations
   getTablets(): Promise<TabletWithBorrowInfo[]>;
@@ -39,7 +40,7 @@ export interface IStorage {
   createTablet(tablet: InsertTablet): Promise<Tablet>;
   updateTablet(id: number, tablet: Partial<InsertTablet>): Promise<Tablet | undefined>;
   deleteTablet(id: number): Promise<boolean>;
-  bulkCreateTablets(tabletsList: InsertTablet[]): Promise<Tablet[]>;
+  bulkCreateTablets(tabletsList: InsertTablet[]): Promise<{ created: Tablet[]; duplicates: string[] }>;
 
   // Borrowing operations
   getBorrowRecords(includeReturned?: boolean): Promise<BorrowRecordWithDetails[]>;
@@ -97,6 +98,21 @@ export class DatabaseStorage implements IStorage {
   async getStudentByStudentId(studentId: string): Promise<Student | undefined> {
     const [student] = await db.select().from(students).where(eq(students.studentId, studentId));
     return student;
+  }
+  
+  async checkDuplicateStudents(studentsList: InsertStudent[]): Promise<Student[]> {
+    if (studentsList.length === 0) return [];
+
+    // Get all existing student IDs from the new list
+    const studentIds = studentsList.map(s => s.studentId);
+    
+    // Find any matching students in the database
+    const existingStudents = await db
+      .select()
+      .from(students)
+      .where(inArray(students.studentId, studentIds));
+    
+    return existingStudents;
   }
 
   async createStudent(student: InsertStudent): Promise<Student> {
