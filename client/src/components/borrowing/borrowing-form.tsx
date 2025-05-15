@@ -163,9 +163,28 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
       }
     } catch (error) {
       console.error("Error submitting borrowing record:", error);
+      // Get more details from the error
+      let errorMessage = "There was an error assigning the tablet. Please try again.";
+      
+      if (error instanceof Response) {
+        try {
+          const errorData = await error.json();
+          console.error("API error details:", errorData);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+          if (errorData.errors) {
+            console.error("Validation errors:", errorData.errors);
+            errorMessage = `Validation error: ${errorData.errors.map((e: any) => e.message).join(', ')}`;
+          }
+        } catch (jsonError) {
+          console.error("Failed to parse error response:", jsonError);
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "There was an error assigning the tablet. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

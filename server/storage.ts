@@ -480,6 +480,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBorrowRecord(borrowRecord: InsertBorrowRecord): Promise<BorrowRecord> {
+    console.log("Creating borrow record with data:", JSON.stringify(borrowRecord, null, 2));
+    
+    // Validate student ID 
+    const [student] = await db
+      .select()
+      .from(students)
+      .where(eq(students.id, borrowRecord.studentId));
+    
+    if (!student) {
+      throw new Error(`Student with ID ${borrowRecord.studentId} not found`);
+    }
+    console.log("Student found:", student.id, student.fullName || `${student.firstName} ${student.lastName}`);
+    
+    // Format accessories if it's a string
+    let accessories = borrowRecord.accessories;
+    if (typeof accessories === 'string') {
+      try {
+        accessories = JSON.parse(accessories);
+      } catch (e) {
+        console.error("Failed to parse accessories JSON:", e);
+        throw new Error("Invalid accessories format");
+      }
+    }
+    
     // Start transaction
     return await db.transaction(async (tx) => {
       // Check if tablet is available (not currently borrowed)
@@ -511,11 +535,23 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Tablet is not serviceable: ${tablet.status}`);
       }
       
+      console.log("Tablet found and is available:", tablet.id, `${tablet.brand} ${tablet.model}`);
+      
+      // Prepare the data for insertion
+      const borrowData = {
+        ...borrowRecord,
+        accessories: accessories
+      };
+      
+      console.log("Inserting borrow record:", JSON.stringify(borrowData, null, 2));
+      
       // Create borrow record
       const [newBorrowRecord] = await tx
         .insert(borrowRecords)
-        .values(borrowRecord)
+        .values(borrowData)
         .returning();
+      
+      console.log("Borrow record created:", newBorrowRecord.id);
       
       // Add to tablet history
       await tx.insert(tabletHistory).values({
@@ -527,6 +563,8 @@ export class DatabaseStorage implements IStorage {
         condition: borrowRecord.condition,
         notes: borrowRecord.notes || 'Tablet borrowed'
       });
+      
+      console.log("Tablet history updated");
       
       return newBorrowRecord;
     });

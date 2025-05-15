@@ -37,15 +37,19 @@ const upload = multer({ storage: storage2 });
 function validateBody(schema: z.ZodSchema<any>) {
   return (req: Request, res: Response, next: Function) => {
     try {
+      console.log("Validating request body:", JSON.stringify(req.body, null, 2));
       req.body = schema.parse(req.body);
       next();
     } catch (error) {
       if (error instanceof ZodError) {
+        console.error("Validation error:", error.errors);
+        console.error("Failed validation for schema:", schema);
         res.status(400).json({
           message: "Validation error",
           errors: error.errors,
         });
       } else {
+        console.error("Non-validation error during request validation:", error);
         next(error);
       }
     }
@@ -464,12 +468,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/borrow-records", validateBody(insertBorrowRecordSchema), async (req, res) => {
     try {
+      console.log("Creating borrow record with data:", JSON.stringify(req.body, null, 2));
       const borrowRecord = await storage.createBorrowRecord(req.body);
+      console.log("Borrow record created successfully:", JSON.stringify(borrowRecord, null, 2));
       res.status(201).json(borrowRecord);
     } catch (error) {
       console.error("Error creating borrow record:", error);
+      let errorMessage = "Failed to create borrow record";
+      
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+        errorMessage = error.message;
+      }
+      
       res.status(500).json({ 
-        message: "Failed to create borrow record",
+        message: errorMessage,
         error: error instanceof Error ? error.message : String(error)
       });
     }
