@@ -21,8 +21,15 @@ export const tabletConditionEnum = pgEnum('tablet_condition', ['New / Excellent'
 // Student table
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
   studentId: text("student_id").notNull().unique(),
+  name: text("name").notNull(),
+  course: text("course").notNull(),
+  major: text("major"),
+  yearLevel: integer("year_level").notNull(),
+  gender: text("gender").notNull(),
+  studentType: text("student_type").notNull(), // Old/New
+  dateRegistered: timestamp("date_registered").notNull().defaultNow(),
+  dateValidated: timestamp("date_validated"),
   email: text("email"),
   phone: text("phone"),
   notes: text("notes"),

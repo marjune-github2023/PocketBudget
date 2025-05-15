@@ -23,8 +23,15 @@ import { queryClient } from "@/lib/queryClient";
 
 // Extend the schema with more validations
 const studentFormSchema = insertStudentSchema.extend({
-  name: z.string().min(1, "Name is required"),
   studentId: z.string().min(1, "Student ID is required"),
+  name: z.string().min(1, "Full Name is required"),
+  course: z.string().min(1, "Course is required"),
+  major: z.string().optional(),
+  yearLevel: z.number().min(1).max(5),
+  gender: z.string().min(1, "Gender is required"),
+  studentType: z.string().min(1, "Student Type is required"),
+  dateRegistered: z.string().min(1, "Date Registered is required"),
+  dateValidated: z.string().optional(),
 });
 
 interface StudentFormProps {
@@ -120,7 +127,138 @@ export function StudentForm({
               </FormItem>
             )}
           />
-          
+
+          <FormField
+            control={form.control}
+            name="course"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Course</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter course" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="major"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Major</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter major (optional)" {...field} value={field.value || ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="yearLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year Level</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select year level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5].map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            Year {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="studentType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Student Type</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="New">New</SelectItem>
+                        <SelectItem value="Old">Old</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="dateRegistered"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date Registered</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateValidated"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date Validated</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} value={field.value || ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <FormField
               control={form.control}

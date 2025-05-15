@@ -32,6 +32,48 @@ export function StudentList() {
     queryKey: ['/api/students'],
   });
 
+  const columns: ColumnDef<StudentWithBorrowInfo>[] = [
+    { 
+      accessorKey: "studentId",
+      header: "Student ID"
+    },
+    { 
+      accessorKey: "name",
+      header: "Full Name"
+    },
+    { 
+      accessorKey: "course",
+      header: "Course"
+    },
+    { 
+      accessorKey: "major",
+      header: "Major"
+    },
+    { 
+      accessorKey: "yearLevel",
+      header: "Year Level"
+    },
+    { 
+      accessorKey: "gender",
+      header: "Gender"
+    },
+    { 
+      accessorKey: "studentType",
+      header: "Type"
+    },
+    { 
+      accessorKey: "dateRegistered",
+      header: "Date Registered",
+      cell: ({ row }) => format(new Date(row.original.dateRegistered), 'MMM dd, yyyy')
+    },
+    { 
+      accessorKey: "dateValidated",
+      header: "Date Validated",
+      cell: ({ row }) => row.original.dateValidated 
+        ? format(new Date(row.original.dateValidated), 'MMM dd, yyyy')
+        : '-'
+    },
+
   const { data: borrowRecords, isLoading: isBorrowingsLoading } = useQuery({
     queryKey: [`/api/students/${currentStudent?.id}/borrow-records`],
     enabled: showBorrowingsDialog && !!currentStudent?.id,
