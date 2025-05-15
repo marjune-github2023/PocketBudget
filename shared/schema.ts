@@ -21,17 +21,48 @@ export const tabletConditionEnum = pgEnum('tablet_condition', ['New / Excellent'
 // Student table
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
-  studentId: text("student_id").notNull().unique(),
-  name: text("name").notNull(),
-  course: text("course").notNull(),
-  major: text("major"),
+  // Basic student information
+  studentId: text("student_id").notNull().unique(), // Student No.
+  lastName: text("last_name").notNull(),
+  firstName: text("first_name").notNull(),
+  middleName: text("middle_name"),
+  suffixName: text("suffix_name"),
+  fullName: text("full_name").notNull(),
+  // Academic information
+  collegeName: text("college_name"),
+  programCode: text("program_code"),
+  programName: text("program_name").notNull(), // Previously course
+  majorName: text("major_name"), // Previously major
   yearLevel: integer("year_level").notNull(),
-  gender: text("gender").notNull(),
-  studentType: text("student_type").notNull(), // Old/New
+  // Dates
   dateRegistered: timestamp("date_registered").notNull().defaultNow(),
   dateValidated: timestamp("date_validated"),
+  dateAdmitted: timestamp("date_admitted"),
+  // Enrollment information
+  academicYear: text("academic_year"),
+  term: text("term"),
+  campus: text("campus"),
+  studentStatus: text("student_status").notNull(), // Previously studentType
+  // Personal information
+  dateOfBirth: timestamp("date_of_birth"),
+  age: integer("age"),
+  placeOfBirth: text("place_of_birth"),
+  gender: text("gender").notNull(),
+  civilStatus: text("civil_status"),
+  mobileNo: text("mobile_no"), // Previously phone
   email: text("email"),
-  phone: text("phone"),
+  residenceAddress: text("residence_address"),
+  // Guardian information
+  guardianLastName: text("guardian_last_name"),
+  guardianFirstName: text("guardian_first_name"),
+  guardianMiddleName: text("guardian_middle_name"),
+  guardianFullName: text("guardian_full_name"),
+  guardianOccupation: text("guardian_occupation"),
+  guardianTelNo: text("guardian_tel_no"),
+  guardianMobileNo: text("guardian_mobile_no"),
+  guardianEmail: text("guardian_email"),
+  guardianAddress: text("guardian_address"),
+  // System fields
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

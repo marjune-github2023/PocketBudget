@@ -145,20 +145,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skip_empty_lines: true,
       });
 
+      // Helper function to safely parse date strings
+      const safeParseDate = (dateStr: string | null | undefined): Date | null => {
+        if (!dateStr) return null;
+        try {
+          // Check for obviously invalid date ranges first
+          if (dateStr.includes('+043990') || dateStr.includes('0000-00-00')) {
+            return null;
+          }
+          const parsed = new Date(dateStr);
+          // Check if date is valid and within reasonable range
+          if (isNaN(parsed.getTime()) || parsed.getFullYear() < 1900 || parsed.getFullYear() > 2100) {
+            return null;
+          }
+          return parsed;
+        } catch (e) {
+          console.error(`Error parsing date: ${dateStr}`, e);
+          return null;
+        }
+      };
+
       // Validate each record
       const students = records.map((record: any) => ({
-        studentId: record.studentId,
-        name: record.name,
-        course: record.course,
-        major: record.major || null,
-        yearLevel: parseInt(record.yearLevel) || 1,
-        gender: record.gender,
-        studentType: record.studentType,
-        dateRegistered: record.dateRegistered ? new Date(record.dateRegistered) : new Date(),
-        dateValidated: record.dateValidated ? new Date(record.dateValidated) : null,
-        email: record.email || null,
-        phone: record.phone || null,
-        notes: record.notes || null,
+        // Basic student information
+        studentId: record.studentId || record["Student No."] || "",
+        lastName: record.lastName || record["Last Name"] || "",
+        firstName: record.firstName || record["First Name"] || "",
+        middleName: record.middleName || record["Middle Name"] || null,
+        suffixName: record.suffixName || record["Suffix Name"] || null,
+        fullName: record.fullName || record["Full Name"] || `${record.firstName || record["First Name"] || ""} ${record.lastName || record["Last Name"] || ""}`,
+        
+        // Academic information
+        collegeName: record.collegeName || record["College Name"] || null,
+        programCode: record.programCode || record["Program Code"] || null,
+        programName: record.programName || record["Program Name"] || record.course || "",
+        majorName: record.majorName || record["Major Name"] || record.major || null,
+        yearLevel: parseInt(record.yearLevel || record["Year Level"] || "1") || 1,
+        
+        // Dates - with safe parsing to prevent timezone errors
+        dateRegistered: safeParseDate(record.dateRegistered || record["Registration Date"]) || new Date(),
+        dateValidated: safeParseDate(record.dateValidated || record["Validation Date"]),
+        dateAdmitted: safeParseDate(record.dateAdmitted || record["Date Admitted"]),
+        
+        // Enrollment information
+        academicYear: record.academicYear || record["Academic Year"] || null,
+        term: record.term || record["Term"] || null,
+        campus: record.campus || record["Campus"] || null,
+        studentStatus: record.studentStatus || record["Student Status"] || record.studentType || "Regular",
+        
+        // Personal information
+        dateOfBirth: safeParseDate(record.dateOfBirth || record["Date Of Birth"]),
+        age: parseInt(record.age || record["Age"] || "0") || null,
+        placeOfBirth: record.placeOfBirth || record["Place Of Birth"] || null,
+        gender: record.gender || record["Gender"] || "Undisclosed",
+        civilStatus: record.civilStatus || record["Civil Status"] || null,
+        mobileNo: record.mobileNo || record["Mobile No."] || record.phone || null,
+        email: record.email || record["Email"] || null,
+        residenceAddress: record.residenceAddress || record["Residence Address"] || null,
+        
+        // Guardian information
+        guardianLastName: record.guardianLastName || record["Guardian Last Name"] || null,
+        guardianFirstName: record.guardianFirstName || record["Guardian First Name"] || null,
+        guardianMiddleName: record.guardianMiddleName || record["Guardian Middle Name"] || null,
+        guardianFullName: record.guardianFullName || record["Guardian Full Name"] || null,
+        guardianOccupation: record.guardianOccupation || record["Guardian Occupation"] || null,
+        guardianTelNo: record.guardianTelNo || record["Guardian Tel No."] || null,
+        guardianMobileNo: record.guardianMobileNo || record["Guardian Mobile No."] || null,
+        guardianEmail: record.guardianEmail || record["Guardian Email"] || null,
+        guardianAddress: record.guardianAddress || record["Guardian Address"] || null,
+        
+        // Additional fields
+        notes: record.notes || record["Notes"] || null,
       }));
 
       // First check for duplicates without creating

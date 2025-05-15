@@ -71,7 +71,7 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Student operations
   async getStudents(): Promise<StudentWithBorrowInfo[]> {
-    const allStudents = await db.select().from(students).orderBy(students.name);
+    const allStudents = await db.select().from(students).orderBy(students.fullName);
     
     // Get active borrowings count for each student
     const activeBorrowings = await db.select({
