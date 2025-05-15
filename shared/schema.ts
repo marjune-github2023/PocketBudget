@@ -39,8 +39,7 @@ export const students = pgTable("students", {
   dateValidated: timestamp("date_validated"),
   dateAdmitted: timestamp("date_admitted"),
   // Enrollment information
-  academicYear: text("academic_year"),
-  term: text("term"),
+  academicYearTerm: text("academic_year"),
   campus: text("campus"),
   studentStatus: text("student_status").notNull(), // Previously studentType
   // Personal information

@@ -327,8 +327,7 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
             <li><span className="font-medium">Registration Date</span> - Date of registration</li>
             <li><span className="font-medium">Validation Date</span> - Date of validation (optional)</li>
             <li><span className="font-medium">Date Admitted</span> - Original admission date (optional)</li>
-            <li><span className="font-medium">Academic Year</span> - Current academic year (optional)</li>
-            <li><span className="font-medium">Term</span> - Current term or semester (optional)</li>
+            <li><span className="font-medium">Academic Year & Term</span> - Current academic year (optional)</li>  
             <li><span className="font-medium">Campus</span> - Campus location (optional)</li>
             <li><span className="font-medium">Student Status</span> - Student status (New/Old/Regular/Irregular)</li>
           </ul>

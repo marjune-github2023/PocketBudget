@@ -8,23 +8,23 @@ export const columns: ColumnDef<Student>[] = [
     header: "Student ID",
   },
   {
-    accessorKey: "name",
+    accessorKey: "fullName",
     header: "Name",
+  },
+  {
+    accessorKey: "programCode",
+    header: "Course",
+  },
+  {
+    accessorKey: "yearLevel",
+    header: "Year Level",
   },
   {
     accessorKey: "email",
     header: "Email",
   },
   {
-    accessorKey: "phone",
-    header: "Phone",
-  },
-  {
-    accessorKey: "studentType",
-    header: "Type",
-  },
-  {
-    accessorKey: "dateRegistered",
-    header: "Registration Date",
+    accessorKey: "mobileNo",
+    header: "Mobile",
   }
 ];

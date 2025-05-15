@@ -83,8 +83,14 @@ export function BorrowingSteps({
     if (!studentSearch) return true;
     
     const searchLower = studentSearch.toLowerCase();
+    
+    // Create a display name from the available fields
+    const displayName = student.fullName || 
+                        `${student.firstName || ''} ${student.lastName || ''}` || 
+                        '';
+    
     return (
-      student.name.toLowerCase().includes(searchLower) ||
+      displayName.toLowerCase().includes(searchLower) ||
       student.studentId.toLowerCase().includes(searchLower)
     );
   });
@@ -233,7 +239,9 @@ export function BorrowingSteps({
                         >
                           <div className="flex justify-between">
                             <div>
-                              <p className="text-sm font-medium text-slate-900">{student.name}</p>
+                              <p className="text-sm font-medium text-slate-900">
+                                {student.fullName || `${student.firstName || ''} ${student.lastName || ''}`}
+                              </p>
                               <p className="text-sm text-slate-500">{student.studentId}</p>
                             </div>
                             <div className="ml-2 flex-shrink-0 flex">
@@ -251,7 +259,7 @@ export function BorrowingSteps({
                           <div className="mt-1">
                             <p className="line-clamp-2 text-sm text-slate-600">
                               {student.email && `${student.email} • `}
-                              {student.phone}
+                              {student.mobileNo || ''}
                             </p>
                           </div>
                         </li>
@@ -381,7 +389,11 @@ export function BorrowingSteps({
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-medium text-slate-900">Borrowing Details</h3>
                   <div className="text-sm font-medium text-slate-600 bg-slate-100 p-2 rounded">
-                    <div>Student: <span className="text-primary-600">{selectedStudent?.name} ({selectedStudent?.studentId})</span></div>
+                    <div>Student: <span className="text-primary-600">
+                      {selectedStudent?.fullName || 
+                       `${selectedStudent?.firstName || ''} ${selectedStudent?.lastName || ''}`} 
+                      ({selectedStudent?.studentId})
+                    </span></div>
                     <div>Device: <span className="text-primary-600">{selectedTablet?.brand} {selectedTablet?.model} - {selectedTablet?.serialNumber}</span></div>
                   </div>
                 </div>
