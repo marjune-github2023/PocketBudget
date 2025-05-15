@@ -147,8 +147,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate each record
       const students = records.map((record: any) => ({
-        name: record.name,
         studentId: record.studentId,
+        name: record.name,
+        course: record.course,
+        major: record.major || null,
+        yearLevel: parseInt(record.yearLevel) || 1,
+        gender: record.gender,
+        studentType: record.studentType,
+        dateRegistered: record.dateRegistered ? new Date(record.dateRegistered) : new Date(),
+        dateValidated: record.dateValidated ? new Date(record.dateValidated) : null,
         email: record.email || null,
         phone: record.phone || null,
         notes: record.notes || null,
