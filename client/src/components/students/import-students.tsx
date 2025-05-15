@@ -302,20 +302,68 @@ export function ImportStudents({ onSuccess }: { onSuccess?: () => void }) {
         
         <div className="mt-4 text-sm text-slate-500">
           <p className="font-medium mb-1">CSV file should include these columns:</p>
+          
+          <p className="font-medium mt-3 mb-1">Basic Student Information:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><span className="font-medium">studentId</span> - Unique identifier for the student</li>
-            <li><span className="font-medium">name</span> - Full name of the student</li>
-            <li><span className="font-medium">course</span> - Student's course</li>
-            <li><span className="font-medium">major</span> - Student's major (optional)</li>
-            <li><span className="font-medium">yearLevel</span> - Year level</li>
-            <li><span className="font-medium">gender</span> - Student's gender</li>
-            <li><span className="font-medium">studentType</span> - Student status (Old/New)</li>
-            <li><span className="font-medium">dateRegistered</span> - Date of registration</li>
-            <li><span className="font-medium">dateValidated</span> - Date of approval (optional)</li>
-            <li><span className="font-medium">email</span> - Student's email address (optional)</li>
-            <li><span className="font-medium">phone</span> - Contact number (optional)</li>
-            <li><span className="font-medium">notes</span> - Additional information (optional)</li>
+            <li><span className="font-medium">Student No.</span> - Unique identifier for the student</li>
+            <li><span className="font-medium">Last Name</span> - Student's last name/surname</li>
+            <li><span className="font-medium">First Name</span> - Student's first name</li>
+            <li><span className="font-medium">Middle Name</span> - Student's middle name (optional)</li>
+            <li><span className="font-medium">Suffix Name</span> - Student's name suffix (optional)</li>
+            <li><span className="font-medium">Full Name</span> - Student's complete name</li>
           </ul>
+          
+          <p className="font-medium mt-3 mb-1">Academic Information:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><span className="font-medium">College Name</span> - College/department name (optional)</li>
+            <li><span className="font-medium">Program Code</span> - Program or course code (optional)</li>
+            <li><span className="font-medium">Program Name</span> - Full program or course name</li>
+            <li><span className="font-medium">Major Name</span> - Student's specialization (optional)</li>
+            <li><span className="font-medium">Year Level</span> - Academic year level</li>
+          </ul>
+          
+          <p className="font-medium mt-3 mb-1">Enrollment Information:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><span className="font-medium">Registration Date</span> - Date of registration</li>
+            <li><span className="font-medium">Validation Date</span> - Date of validation (optional)</li>
+            <li><span className="font-medium">Date Admitted</span> - Original admission date (optional)</li>
+            <li><span className="font-medium">Academic Year</span> - Current academic year (optional)</li>
+            <li><span className="font-medium">Term</span> - Current term or semester (optional)</li>
+            <li><span className="font-medium">Campus</span> - Campus location (optional)</li>
+            <li><span className="font-medium">Student Status</span> - Student status (New/Old/Regular/Irregular)</li>
+          </ul>
+          
+          <p className="font-medium mt-3 mb-1">Personal Information:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><span className="font-medium">Date Of Birth</span> - Student's birth date (optional)</li>
+            <li><span className="font-medium">Age</span> - Student's age (optional)</li>
+            <li><span className="font-medium">Place Of Birth</span> - Student's birthplace (optional)</li>
+            <li><span className="font-medium">Gender</span> - Student's gender</li>
+            <li><span className="font-medium">Civil Status</span> - Marital status (optional)</li>
+            <li><span className="font-medium">Mobile No.</span> - Contact phone number (optional)</li>
+            <li><span className="font-medium">Email</span> - Email address (optional)</li>
+            <li><span className="font-medium">Residence Address</span> - Current address (optional)</li>
+          </ul>
+          
+          <p className="font-medium mt-3 mb-1">Guardian Information (all optional):</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><span className="font-medium">Guardian Last Name</span> - Guardian's last name</li>
+            <li><span className="font-medium">Guardian First Name</span> - Guardian's first name</li>
+            <li><span className="font-medium">Guardian Middle Name</span> - Guardian's middle name</li>
+            <li><span className="font-medium">Guardian Full Name</span> - Guardian's complete name</li>
+            <li><span className="font-medium">Guardian Occupation</span> - Guardian's job</li>
+            <li><span className="font-medium">Guardian Tel No.</span> - Guardian's telephone</li>
+            <li><span className="font-medium">Guardian Mobile No.</span> - Guardian's mobile number</li>
+            <li><span className="font-medium">Guardian Email</span> - Guardian's email address</li>
+            <li><span className="font-medium">Guardian Address</span> - Guardian's address</li>
+          </ul>
+          
+          <p className="font-medium mt-3 mb-1">Additional Information:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><span className="font-medium">Notes</span> - Any additional information (optional)</li>
+          </ul>
+          
+          <p className="mt-3 italic">Note: Download the template for an example CSV format with all fields.</p>
         </div>
       </CardContent>
     </Card>

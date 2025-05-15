@@ -579,7 +579,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/templates/students", (req, res) => {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="students_template.csv"');
-    res.send('studentId,name,course,major,yearLevel,gender,studentType,dateRegistered,dateValidated,email,phone,notes\n2023001,John Doe,BS Computer Science,,1,Male,New,2023-01-01,2023-01-02,john.doe@example.com,555-123-4567,"Honor student"\n2023002,Jane Smith,BS Information Technology,Database,2,Female,Old,2023-02-01,2023-02-02,jane.smith@example.com,555-987-6543,"Transfer student"');
+    
+    // Create header row with all possible fields
+    const headers = [
+      // Basic student information
+      "Student No.", "Last Name", "First Name", "Middle Name", "Suffix Name", "Full Name",
+      // Academic information
+      "College Name", "Program Code", "Program Name", "Major Name", "Year Level",
+      // Dates
+      "Registration Date", "Validation Date", "Date Admitted",
+      // Enrollment information
+      "Academic Year", "Term", "Campus", "Student Status",
+      // Personal information
+      "Date Of Birth", "Age", "Place Of Birth", "Gender", "Civil Status", 
+      "Mobile No.", "Email", "Residence Address",
+      // Guardian information
+      "Guardian Last Name", "Guardian First Name", "Guardian Middle Name", "Guardian Full Name",
+      "Guardian Occupation", "Guardian Tel No.", "Guardian Mobile No.", 
+      "Guardian Email", "Guardian Address",
+      // Additional fields
+      "Notes"
+    ].join(',');
+    
+    // Create sample rows
+    const sampleRow1 = [
+      // Basic student information
+      "2023001", "Doe", "John", "Andrew", "", "John Andrew Doe",
+      // Academic information
+      "College of Engineering", "BSCS", "BS Computer Science", "Software Engineering", "1",
+      // Dates
+      "2023-01-01", "2023-01-02", "2023-01-01",
+      // Enrollment information
+      "2023-2024", "First", "Main", "New",
+      // Personal information
+      "2000-05-15", "23", "Manila", "Male", "Single",
+      "555-123-4567", "john.doe@example.com", "123 Main St, Apt 4B",
+      // Guardian information
+      "Doe", "Mary", "Susan", "Mary Susan Doe",
+      "Engineer", "555-765-4321", "555-765-4322",
+      "mary.doe@example.com", "123 Main St, Apt 4B",
+      // Additional fields
+      "Honor student"
+    ].join(',');
+    
+    const sampleRow2 = [
+      // Basic student information
+      "2023002", "Smith", "Jane", "Elizabeth", "", "Jane Elizabeth Smith",
+      // Academic information
+      "College of Information Technology", "BSIT", "BS Information Technology", "Database Management", "2",
+      // Dates
+      "2023-02-01", "2023-02-02", "2022-06-01",
+      // Enrollment information
+      "2023-2024", "First", "Main", "Old",
+      // Personal information
+      "2001-10-20", "22", "Cebu", "Female", "Single",
+      "555-987-6543", "jane.smith@example.com", "456 Oak Avenue",
+      // Guardian information
+      "Smith", "Robert", "James", "Robert James Smith",
+      "Teacher", "555-123-7890", "555-123-7891",
+      "robert.smith@example.com", "456 Oak Avenue",
+      // Additional fields
+      "Transfer student"
+    ].join(',');
+    
+    res.send(`${headers}\n${sampleRow1}\n${sampleRow2}`);
   });
 
   app.get("/api/templates/tablets", (req, res) => {
