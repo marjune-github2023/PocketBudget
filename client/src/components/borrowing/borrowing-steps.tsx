@@ -232,10 +232,15 @@ export function BorrowingSteps({
                           key={student.id}
                           className={`
                             relative bg-white py-5 px-4 hover:bg-slate-50 focus-within:ring-2 
-                            focus-within:ring-inset focus-within:ring-primary-600 cursor-pointer
+                            focus-within:ring-inset focus-within:ring-primary-600 
+                            ${student.activeBorrowings > 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
                             ${selectedStudent?.id === student.id ? 'bg-primary-50 border-l-4 border-primary-600' : ''}
                           `}
-                          onClick={() => onStudentSelect(student)}
+                          onClick={() => {
+                            if (student.activeBorrowings === 0) {
+                              onStudentSelect(student);
+                            }
+                          }}
                         >
                           <div className="flex justify-between">
                             <div>
@@ -247,12 +252,12 @@ export function BorrowingSteps({
                             <div className="ml-2 flex-shrink-0 flex">
                               <Badge variant="outline" className={
                                 student.activeBorrowings > 0 
-                                  ? "bg-amber-100 text-amber-800" 
+                                  ? "bg-red-100 text-red-800" 
                                   : "bg-green-100 text-green-800"
                               }>
                                 {student.activeBorrowings > 0 
-                                  ? `${student.activeBorrowings} Active Borrowings` 
-                                  : "No Active Borrowings"}
+                                  ? "Already Borrowing" 
+                                  : "Available to Borrow"}
                               </Badge>
                             </div>
                           </div>
@@ -262,6 +267,11 @@ export function BorrowingSteps({
                               {student.mobileNo || ''}
                             </p>
                           </div>
+                          {student.activeBorrowings > 0 && (
+                            <div className="mt-2 text-sm text-red-600">
+                              This student already has an active borrowing and cannot borrow another tablet.
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ul>

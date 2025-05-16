@@ -16,10 +16,12 @@ import {
   type TabletHistory,
   type TabletWithBorrowInfo,
   type BorrowRecordWithDetails,
-  type StudentWithBorrowInfo
+  type StudentWithBorrowInfo,
+  admin
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull, desc, sql, inArray, not, asc } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Student operations
@@ -66,6 +68,11 @@ export interface IStorage {
     lostTablets: number;
   }>;
   getRecentActivity(limit?: number): Promise<any[]>;
+
+  // Admin operations
+  getAdminByUsername(username: string): Promise<{ id: number; username: string; passwordHash: string } | undefined>;
+  createAdmin(username: string, password: string): Promise<void>;
+  updateAdminPassword(id: number, newPassword: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -231,16 +238,15 @@ export class DatabaseStorage implements IStorage {
     const borrowedIds = borrowedTabletIds.map(record => record.id);
     
     // Get tablets that are serviceable and not currently borrowed
-    let query = db
-      .select()
-      .from(tablets)
-      .where(eq(tablets.status, 'Serviceable'));
-    
+    let condition: any = undefined;
     if (borrowedIds.length > 0) {
-      query = query.where(not(inArray(tablets.id, borrowedIds)));
+      condition = and(eq(tablets.status, 'Serviceable'), not(inArray(tablets.id, borrowedIds)));
+    } else {
+      condition = eq(tablets.status, 'Serviceable');
     }
-    
-    return query;
+    return condition
+      ? db.select().from(tablets).where(condition)
+      : db.select().from(tablets);
   }
 
   async createTablet(tablet: InsertTablet): Promise<Tablet> {
@@ -359,20 +365,18 @@ export class DatabaseStorage implements IStorage {
 
   // Borrowing operations
   async getBorrowRecords(includeReturned: boolean = true): Promise<BorrowRecordWithDetails[]> {
-    let query = db
-      .select()
-      .from(borrowRecords)
-      .orderBy(desc(borrowRecords.dateBorrowed));
-    
+    let condition = undefined;
     if (!includeReturned) {
-      query = query.where(eq(borrowRecords.isReturned, false));
+      condition = eq(borrowRecords.isReturned, false);
     }
-    
+    const query = condition
+      ? db.select().from(borrowRecords).where(condition).orderBy(desc(borrowRecords.dateBorrowed))
+      : db.select().from(borrowRecords).orderBy(desc(borrowRecords.dateBorrowed));
     const records = await query;
     
     // Get tablet and student details
-    const tabletIds = [...new Set(records.map(r => r.tabletId))];
-    const studentIds = [...new Set(records.map(r => r.studentId))];
+    const tabletIds = Array.from(new Set(records.map(r => r.tabletId)));
+    const studentIds = Array.from(new Set(records.map(r => r.studentId)));
     
     const tabletDetails = await db
       .select()
@@ -402,7 +406,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(borrowRecords.dateBorrowed));
     
     // Get tablet details
-    const tabletIds = [...new Set(records.map(r => r.tabletId))];
+    const tabletIds = Array.from(new Set(records.map(r => r.tabletId)));
     
     const tabletDetails = await db
       .select()
@@ -432,7 +436,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(borrowRecords.dateBorrowed));
     
     // Get student details
-    const studentIds = [...new Set(records.map(r => r.studentId))];
+    const studentIds = Array.from(new Set(records.map(r => r.studentId)));
     
     const studentDetails = await db
       .select()
@@ -540,7 +544,10 @@ export class DatabaseStorage implements IStorage {
       // Prepare the data for insertion
       const borrowData = {
         ...borrowRecord,
-        accessories: accessories
+        accessories: accessories,
+        expectedReturnDate: borrowRecord.expectedReturnDate instanceof Date
+          ? borrowRecord.expectedReturnDate.toISOString().slice(0, 10)
+          : borrowRecord.expectedReturnDate ?? null
       };
       
       console.log("Inserting borrow record:", JSON.stringify(borrowData, null, 2));
@@ -553,7 +560,7 @@ export class DatabaseStorage implements IStorage {
       
       console.log("Borrow record created:", newBorrowRecord.id);
       
-      // Add to tablet history
+      // Add to tablet history with detailed information
       await tx.insert(tabletHistory).values({
         tabletId: borrowRecord.tabletId,
         studentId: borrowRecord.studentId,
@@ -561,7 +568,8 @@ export class DatabaseStorage implements IStorage {
         eventType: 'borrowed',
         date: newBorrowRecord.dateBorrowed,
         condition: borrowRecord.condition,
-        notes: borrowRecord.notes || 'Tablet borrowed'
+        accessories: accessories,
+        notes: `Borrowed by ${student.fullName || `${student.firstName} ${student.lastName}`} (${student.studentId}). Accessories: ${JSON.stringify(accessories)}`
       });
       
       console.log("Tablet history updated");
@@ -573,7 +581,7 @@ export class DatabaseStorage implements IStorage {
   async processReturn(id: number, returnData: UpdateBorrowRecordForReturn): Promise<BorrowRecord | undefined> {
     // Start transaction
     return await db.transaction(async (tx) => {
-      // Get the borrow record
+      // Get the borrow record with student details
       const [borrowRecord] = await tx
         .select()
         .from(borrowRecords)
@@ -585,6 +593,16 @@ export class DatabaseStorage implements IStorage {
       
       if (borrowRecord.isReturned) {
         throw new Error('Tablet has already been returned');
+      }
+
+      // Get student details
+      const [student] = await tx
+        .select()
+        .from(students)
+        .where(eq(students.id, borrowRecord.studentId));
+
+      if (!student) {
+        throw new Error('Student not found');
       }
       
       // Update the borrow record
@@ -609,7 +627,7 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(tablets.id, borrowRecord.tabletId));
       
-      // Add to tablet history
+      // Add to tablet history with detailed return information
       await tx.insert(tabletHistory).values({
         tabletId: borrowRecord.tabletId,
         studentId: borrowRecord.studentId,
@@ -617,7 +635,8 @@ export class DatabaseStorage implements IStorage {
         eventType: 'returned',
         date: updatedRecord.returnDate!,
         condition: returnData.returnCondition,
-        notes: returnData.returnNotes || 'Tablet returned'
+        accessories: borrowRecord.accessories, // Include the accessories that were returned
+        notes: `Returned by ${student.fullName || `${student.firstName} ${student.lastName}`} (${student.studentId}). Return condition: ${returnData.returnCondition}. Accessories returned: ${JSON.stringify(borrowRecord.accessories)}`
       });
       
       return updatedRecord;
@@ -695,11 +714,45 @@ export class DatabaseStorage implements IStorage {
 
   // History operations
   async getTabletHistory(tabletId: number): Promise<TabletHistory[]> {
-    return db
-      .select()
+    const history = await db
+      .select({
+        id: tabletHistory.id,
+        tabletId: tabletHistory.tabletId,
+        studentId: tabletHistory.studentId,
+        borrowRecordId: tabletHistory.borrowRecordId,
+        eventType: tabletHistory.eventType,
+        date: tabletHistory.date,
+        condition: tabletHistory.condition,
+        accessories: tabletHistory.accessories,
+        notes: tabletHistory.notes,
+        createdAt: tabletHistory.createdAt,
+        // Include student details
+        student: {
+          id: students.id,
+          studentId: students.studentId,
+          fullName: students.fullName,
+          firstName: students.firstName,
+          lastName: students.lastName,
+        }
+      })
       .from(tabletHistory)
+      .leftJoin(students, eq(tabletHistory.studentId, students.id))
       .where(eq(tabletHistory.tabletId, tabletId))
       .orderBy(desc(tabletHistory.date));
+
+    return history.map(record => ({
+      id: record.id,
+      tabletId: record.tabletId,
+      studentId: record.studentId,
+      borrowRecordId: record.borrowRecordId,
+      eventType: record.eventType,
+      date: record.date,
+      condition: record.condition,
+      accessories: record.accessories as { charger: boolean; cable: boolean; box: boolean } | null,
+      notes: record.notes,
+      createdAt: record.createdAt,
+      student: record.student || undefined
+    })) as unknown as TabletHistory[];
   }
   
   // Dashboard operations
@@ -750,8 +803,8 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
     
     // Get related tablet and student info
-    const tabletIds = [...new Set(recentHistory.map(h => h.tabletId))];
-    const studentIds = [...new Set(recentHistory.filter(h => h.studentId).map(h => h.studentId!))];
+    const tabletIds = Array.from(new Set(recentHistory.map(h => h.tabletId)));
+    const studentIds = Array.from(new Set(recentHistory.filter(h => h.studentId).map(h => h.studentId!)));
     
     const tabletDetails = await db
       .select({
@@ -783,6 +836,22 @@ export class DatabaseStorage implements IStorage {
       tablet: tabletsMap.get(history.tabletId),
       student: history.studentId ? studentsMap.get(history.studentId) : null
     }));
+  }
+
+  // Admin operations
+  async getAdminByUsername(username: string) {
+    const [adminUser] = await db.select().from(admin).where(eq(admin.username, username));
+    return adminUser;
+  }
+
+  async createAdmin(username: string, password: string) {
+    const passwordHash = await bcrypt.hash(password, 10);
+    await db.insert(admin).values({ username, passwordHash }).onConflictDoNothing();
+  }
+
+  async updateAdminPassword(id: number, newPassword: string) {
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await db.update(admin).set({ passwordHash, updatedAt: new Date() }).where(eq(admin.id, id));
   }
 }
 

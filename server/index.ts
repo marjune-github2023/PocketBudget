@@ -1,6 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import dotenv from "dotenv";
+import { storage } from "./storage";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -37,6 +41,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Seed admin user if not present
+  if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+    await storage.createAdmin(process.env.ADMIN_USERNAME, process.env.ADMIN_PASSWORD);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

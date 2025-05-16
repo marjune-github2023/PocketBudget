@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { BorrowingSteps } from "./borrowing-steps";
 import { 
   Student, 
@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card } from "@/components/ui/card";
 import { generatePDF } from "@/lib/pdf";
+import UsufructAgreementPDF from './UsufructAgreementPDF';
 
 // Define the steps for the borrowing process
 export type BorrowingStep = "student" | "tablet" | "details" | "confirmation";
@@ -55,6 +56,7 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
   const [selectedTablet, setSelectedTablet] = useState<Tablet | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [borrowSuccess, setBorrowSuccess] = useState(false);
+  const agreementRef = useRef<{ exportPDF: () => void }>(null);
   
   // Initialize form with validation
   const form = useForm<BorrowingFormData>({
@@ -80,9 +82,9 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
     form.setValue("tabletId", tablet.id);
     
     // Set defaults based on tablet accessories
-    form.setValue("hasCharger", tablet.hasCharger);
-    form.setValue("hasCable", tablet.hasCable);
-    form.setValue("hasBox", tablet.hasBox);
+    form.setValue("hasCharger", !!tablet.hasCharger);
+    form.setValue("hasCable", !!tablet.hasCable);
+    form.setValue("hasBox", !!tablet.hasBox);
     form.setValue("condition", tablet.condition);
   };
   
@@ -112,33 +114,6 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
       // Submit to the API
       const response = await apiRequest("POST", "/api/borrow-records", borrowRecord);
       
-      // Generate PDF agreement
-      if (selectedStudent && selectedTablet) {
-        try {
-          await generatePDF({
-            type: 'borrowing-agreement',
-            data: {
-              student: selectedStudent,
-              tablet: selectedTablet,
-              borrowRecord: {
-                ...borrowRecord,
-                dateBorrowed: new Date(data.dateBorrowed),
-                expectedReturnDate: data.expectedReturnDate 
-                  ? new Date(data.expectedReturnDate)
-                  : undefined,
-              },
-            },
-          });
-        } catch (pdfError) {
-          console.error("Error generating PDF:", pdfError);
-          toast({
-            title: "PDF Generation Failed",
-            description: "The borrowing record was created but we couldn't generate the PDF agreement.",
-            variant: "destructive",
-          });
-        }
-      }
-      
       // Show success message
       toast({
         title: "Borrowing recorded",
@@ -159,6 +134,10 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
       if (onComplete) {
         onComplete();
       }
+      
+      setTimeout(() => {
+        agreementRef.current?.exportPDF();
+      }, 1000);
     } catch (error) {
       console.error("Error submitting borrowing record:", error);
       // Get more details from the error
@@ -276,6 +255,35 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
         isSubmitting={isSubmitting}
         borrowSuccess={borrowSuccess}
       />
+      {borrowSuccess && selectedStudent && selectedTablet && (
+        <>
+          <UsufructAgreementPDF
+            ref={agreementRef}
+            borrowDetails={{
+              dateBorrowedFormatted: new Date(form.getValues().dateBorrowed || Date.now()).toLocaleDateString(),
+            }}
+            student={{
+              fullName: selectedStudent.fullName || '',
+              age: typeof selectedStudent.age === 'number' ? selectedStudent.age : 0,
+              residenceAddress: selectedStudent.residenceAddress || '',
+              isMinor: typeof selectedStudent.age === 'number' ? selectedStudent.age < 18 : false,
+              guardianFullName: selectedStudent.guardianFullName || undefined,
+              guardianAddress: selectedStudent.guardianAddress || undefined,
+              programName: selectedStudent.programName || '',
+              collegeName: selectedStudent.collegeName || '',
+            }}
+            tablet={{
+              brand: selectedTablet.brand || '',
+              color: selectedTablet.color || '',
+              model: selectedTablet.model || '',
+              serialNumber: selectedTablet.serialNumber || '',
+            }}
+          />
+          <button onClick={() => agreementRef.current?.exportPDF()} className="btn btn-secondary mt-2">
+            Test Export PDF
+          </button>
+        </>
+      )}
     </Card>
   );
 }

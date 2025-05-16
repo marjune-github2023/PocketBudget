@@ -99,6 +99,7 @@ export const borrowRecords = pgTable("borrow_records", {
   returnDate: timestamp("return_date"),
   returnCondition: tabletConditionEnum("return_condition"),
   returnNotes: text("return_notes"),
+  usufructAgreementPath: text("usufruct_agreement_path"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -125,8 +126,18 @@ export const tabletHistory = pgTable("tablet_history", {
   eventType: text("event_type").notNull(), // 'borrowed', 'returned', 'lost', 'status_change', etc.
   date: timestamp("date").notNull().defaultNow(),
   condition: tabletConditionEnum("condition"),
+  accessories: json("accessories").default({}), // Track accessories for borrow/return events
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Admin table for single admin authentication
+export const admin = pgTable("admin", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Define relations
@@ -231,6 +242,11 @@ export const insertBorrowRecordSchema = baseInsertBorrowRecordSchema.extend({
     }
     return arg; // Let the validation fail
   }, z.date().optional()),
+  accessories: z.object({
+    charger: z.boolean(),
+    cable: z.boolean(),
+    box: z.boolean(),
+  }).default({ charger: false, cable: false, box: false }),
 });
 
 export const selectBorrowRecordSchema = createSelectSchema(borrowRecords);

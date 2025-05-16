@@ -8,9 +8,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import UsufructAgreementPDF from "@/components/borrowing/UsufructAgreementPDF";
+import { Dialog } from "@/components/ui/dialog";
 
 export default function Borrowing() {
   const [showBorrowingForm, setShowBorrowingForm] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
+  const [selectedBorrow, setSelectedBorrow] = useState<any>(null);
   
   // Fetch active borrowing records
   const { data: borrowRecords, isLoading, error } = useQuery({
@@ -76,6 +80,22 @@ export default function Borrowing() {
         <Badge className="bg-orange-100 text-orange-800">
           Borrowed
         </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedBorrow(row.original);
+            setShowAgreement(true);
+          }}
+        >
+          Print Usufruct Agreement
+        </Button>
       ),
     },
   ];
@@ -147,6 +167,25 @@ export default function Borrowing() {
           )}
         </div>
       </div>
+      {showAgreement && selectedBorrow && (
+        <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
+          <div className="p-4 bg-white rounded shadow max-w-3xl mx-auto">
+            <UsufructAgreementPDF
+              borrowDetails={{
+                dateBorrowedFormatted: new Date(selectedBorrow.dateBorrowed).toLocaleDateString(),
+              }}
+              student={selectedBorrow.student}
+              tablet={selectedBorrow.tablet}
+            />
+            <Button
+              className="btn btn-secondary mt-2"
+              onClick={() => setShowAgreement(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }

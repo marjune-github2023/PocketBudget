@@ -38,12 +38,13 @@ export default function Returns() {
     if (!search) return true;
     
     const searchLower = search.toLowerCase();
+    const studentName = `${record.student?.firstName || ''} ${record.student?.lastName || ''}`.toLowerCase();
     return (
-      record.student.name.toLowerCase().includes(searchLower) ||
-      record.student.studentId.toLowerCase().includes(searchLower) ||
-      record.tablet.brand.toLowerCase().includes(searchLower) ||
-      record.tablet.model.toLowerCase().includes(searchLower) ||
-      record.tablet.serialNumber.toLowerCase().includes(searchLower)
+      studentName.includes(searchLower) ||
+      record.student?.studentId?.toLowerCase().includes(searchLower) ||
+      record.tablet?.brand?.toLowerCase().includes(searchLower) ||
+      record.tablet?.model?.toLowerCase().includes(searchLower) ||
+      record.tablet?.serialNumber?.toLowerCase().includes(searchLower)
     );
   });
   
@@ -92,21 +93,25 @@ export default function Returns() {
                       <CardContent className="p-0">
                         <div className="px-4 py-3 bg-orange-50">
                           <div className="flex justify-between items-center">
-                            <h3 className="font-medium">
-                              {record.tablet.brand} {record.tablet.model}
-                            </h3>
+                            <div>
+                              <h3 className="font-medium">
+                                {record.tablet?.brand} {record.tablet?.model}
+                              </h3>
+                              <p className="text-sm text-gray-500">Serial: {record.tablet?.serialNumber}</p>
+                            </div>
                             <Badge variant="outline" className="bg-orange-100 text-orange-800">
                               Borrowed
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500">Serial: {record.tablet.serialNumber}</p>
                         </div>
                         
                         <div className="p-4">
                           <div className="mb-3">
-                            <p className="text-sm font-medium text-gray-500">Student</p>
-                            <p className="font-medium">{record.student.name}</p>
-                            <p className="text-sm text-gray-500">{record.student.studentId}</p>
+                            <p className="text-sm font-medium text-gray-500">Student Information</p>
+                            <p className="font-medium">
+                              {record.student?.firstName} {record.student?.lastName}
+                            </p>
+                            <p className="text-sm text-gray-500">ID: {record.student?.studentId}</p>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-2 text-sm mb-4">

@@ -95,6 +95,10 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             <NavItem href="/reports" icon={BarChart3} onClick={() => setIsOpen(false)}>
               Reports
             </NavItem>
+            <hr className="my-3 border-slate-700" />
+            <NavItem href="/admin" icon={Gauge} onClick={() => setIsOpen(false)}>
+              Admin Dashboard
+            </NavItem>
           </nav>
         </div>
       </div>
@@ -125,6 +129,10 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 </NavItem>
                 <NavItem href="/reports" icon={BarChart3}>
                   Reports
+                </NavItem>
+                <hr className="my-3 border-slate-700" />
+                <NavItem href="/admin" icon={Gauge}>
+                  Admin Dashboard
                 </NavItem>
               </nav>
             </div>

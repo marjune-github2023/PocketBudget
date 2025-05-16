@@ -14,6 +14,16 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
+import session from "express-session";
+import bcrypt from "bcrypt";
+
+// Extend express-session types for adminId
+import "express-session";
+declare module "express-session" {
+  interface SessionData {
+    adminId?: number;
+  }
+}
 
 // Setup file upload
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -57,6 +67,81 @@ function validateBody(schema: z.ZodSchema<any>) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || "supersecretkey",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, secure: false }, // Set secure: true if using HTTPS
+  }));
+
+  // Middleware to require admin authentication
+  function requireAdmin(req: Request, res: Response, next: Function) {
+    if (!req.session || !req.session.adminId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    next();
+  }
+
+  // Protect all API endpoints except admin login and session check
+  app.use((req, res, next) => {
+    if (
+      req.path.startsWith("/api/") &&
+      !req.path.startsWith("/api/admin/login") &&
+      !req.path.startsWith("/api/admin/me")
+    ) {
+      return requireAdmin(req, res, next);
+    }
+    next();
+  });
+
+  // Admin login endpoint (no auth required)
+  app.post("/api/admin/login", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password are required" });
+    }
+    const adminUser = await storage.getAdminByUsername(username);
+    if (!adminUser) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    const valid = await bcrypt.compare(password, adminUser.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    req.session.adminId = adminUser.id;
+    res.json({ message: "Login successful" });
+  });
+
+  // Admin session check endpoint
+  app.get("/api/admin/me", requireAdmin, (req, res) => {
+    res.json({ authenticated: true });
+  });
+
+  // All other admin endpoints require authentication
+  app.post("/api/admin/change-password", requireAdmin, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Old and new password are required" });
+    }
+    const adminUser = await storage.getAdminByUsername("admin");
+    if (!adminUser) {
+      return res.status(401).json({ message: "Admin not found" });
+    }
+    const valid = await bcrypt.compare(oldPassword, adminUser.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ message: "Old password is incorrect" });
+    }
+    await storage.updateAdminPassword(adminUser.id, newPassword);
+    res.json({ message: "Password changed successfully" });
+  });
+
+  app.post("/api/admin/logout", requireAdmin, (req, res) => {
+    req.session.destroy(() => {
+      res.json({ message: "Logged out" });
+    });
+  });
+
   // Student routes
   app.get("/api/students", async (req, res) => {
     try {
@@ -237,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // If confirmImport=true, proceed with import
-      const filtered = students.filter(student => 
+      const filtered = students.filter((student: any) =>
         !existingStudents.find(e => e.studentId === student.studentId)
       );
       
