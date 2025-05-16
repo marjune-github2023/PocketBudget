@@ -93,19 +93,17 @@ export function BorrowingForm({ onComplete }: BorrowingFormProps) {
     try {
       // Create accessories object
       const accessories = {
-        charger: data.hasCharger,
-        cable: data.hasCable,
-        box: data.hasBox,
+        charger: data.hasCharger === true || false,
+        cable: data.hasCable === true || false,
+        box: data.hasBox === true || false,
       };
       
       // Format data for the API
       const borrowRecord = {
         tabletId: data.tabletId,
         studentId: data.studentId,
-        dateBorrowed: new Date(data.dateBorrowed).toISOString(),
-        expectedReturnDate: data.expectedReturnDate 
-          ? new Date(data.expectedReturnDate).toISOString() 
-          : undefined,
+        dateBorrowed: new Date(data.dateBorrowed),
+        expectedReturnDate: data.expectedReturnDate ? new Date(data.expectedReturnDate) : undefined,
         accessories,
         condition: data.condition,
         notes: data.notes,

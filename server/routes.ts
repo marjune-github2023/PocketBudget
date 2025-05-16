@@ -38,20 +38,20 @@ function validateBody(schema: z.ZodSchema<any>) {
   return (req: Request, res: Response, next: Function) => {
     try {
       console.log("Validating request body:", JSON.stringify(req.body, null, 2));
-      req.body = schema.parse(req.body);
+      const result = schema.safeParse(req.body);
+      if (!result.success) {
+        console.error("Validation error:", result.error.errors);
+        console.error("Failed validation for schema:", schema);
+        return res.status(400).json({
+          message: "Validation error",
+          errors: result.error.errors,
+        });
+      }
+      req.body = result.data;
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        console.error("Validation error:", error.errors);
-        console.error("Failed validation for schema:", schema);
-        res.status(400).json({
-          message: "Validation error",
-          errors: error.errors,
-        });
-      } else {
-        console.error("Non-validation error during request validation:", error);
-        next(error);
-      }
+      console.error("Non-validation error during request validation:", error);
+      next(error);
     }
   };
 }

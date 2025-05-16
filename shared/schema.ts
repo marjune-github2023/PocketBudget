@@ -192,7 +192,47 @@ export const selectStudentSchema = createSelectSchema(students);
 export const insertTabletSchema = createInsertSchema(tablets).omit({ id: true, createdAt: true, updatedAt: true });
 export const selectTabletSchema = createSelectSchema(tablets);
 
-export const insertBorrowRecordSchema = createInsertSchema(borrowRecords).omit({ id: true, createdAt: true, updatedAt: true, isReturned: true, returnDate: true, returnCondition: true, returnNotes: true });
+// New definition for insertBorrowRecordSchema with preprocessing for dates:
+const baseInsertBorrowRecordSchema = createInsertSchema(borrowRecords)
+  .omit({ 
+    id: true, 
+    createdAt: true, 
+    updatedAt: true, 
+    isReturned: true, 
+    returnDate: true, 
+    returnCondition: true, 
+    returnNotes: true 
+  });
+
+export const insertBorrowRecordSchema = baseInsertBorrowRecordSchema.extend({
+  dateBorrowed: z.preprocess((arg) => {
+    if (typeof arg === "string") {
+      const date = new Date(arg);
+      if (isNaN(date.getTime())) {
+        return arg; // Let the validation fail
+      }
+      return date;
+    }
+    if (arg instanceof Date) {
+      return arg;
+    }
+    return arg; // Let the validation fail
+  }, z.date()),
+  expectedReturnDate: z.preprocess((arg) => {
+    if (typeof arg === "string") {
+      const date = new Date(arg);
+      if (isNaN(date.getTime())) {
+        return arg; // Let the validation fail
+      }
+      return date;
+    }
+    if (arg instanceof Date) {
+      return arg;
+    }
+    return arg; // Let the validation fail
+  }, z.date().optional()),
+});
+
 export const selectBorrowRecordSchema = createSelectSchema(borrowRecords);
 
 export const insertLostReportSchema = createInsertSchema(lostReports).omit({ id: true, createdAt: true, updatedAt: true });
@@ -200,8 +240,11 @@ export const selectLostReportSchema = createSelectSchema(lostReports);
 
 export const updateBorrowRecordForReturnSchema = z.object({
   isReturned: z.boolean(),
-  returnDate: z.date().or(z.string()),
-  returnCondition: tabletConditionEnum,
+  returnDate: z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+    return arg;
+  }, z.date()), // Allow string or date, then convert to Date
+  returnCondition: z.enum(tabletConditionEnum.enumValues),
   returnNotes: z.string().optional(),
 });
 
